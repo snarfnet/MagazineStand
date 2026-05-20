@@ -13,9 +13,9 @@ final class MagazineViewModel: ObservableObject {
     private var totalPages = 1
     private var loadedJans: Set<String> = []
 
-    var canLoadMore: Bool {
-        currentPage < totalPages && !isLoading
-    }
+    var featured: Magazine? { magazines.first }
+    var newReleaseCount: Int { magazines.filter(\.isNewRelease).count }
+    var canLoadMore: Bool { currentPage < totalPages && !isLoading }
 
     func loadMagazines(reset: Bool = false) async {
         if reset {
@@ -35,13 +35,17 @@ final class MagazineViewModel: ObservableObject {
                 keyword: searchText,
                 page: currentPage
             )
-            let newMagazines = response.Items.map(\.Item).filter { !loadedJans.contains($0.jan) }
-            for m in newMagazines { loadedJans.insert(m.jan) }
+            let newMagazines = response.Items.map(\.Item).filter { !loadedJans.contains($0.id) }
+            for magazine in newMagazines { loadedJans.insert(magazine.id) }
             magazines.append(contentsOf: newMagazines)
-            totalPages = response.pageCount
+            totalPages = max(response.pageCount, currentPage)
             currentPage += 1
+
+            if magazines.isEmpty {
+                useSampleData(message: "表示できる雑誌がありません。サンプル棚を表示しています。")
+            }
         } catch {
-            errorMessage = "読み込みに失敗しました"
+            useSampleData(message: "通信に失敗しました。サンプル棚を表示しています。")
         }
 
         isLoading = false
@@ -60,5 +64,14 @@ final class MagazineViewModel: ObservableObject {
     func loadMoreIfNeeded(current: Magazine) async {
         guard let last = magazines.last, last.id == current.id, canLoadMore else { return }
         await loadMagazines()
+    }
+
+    private func useSampleData(message: String) {
+        if magazines.isEmpty {
+            magazines = Magazine.samples
+            loadedJans = Set(magazines.map(\.id))
+        }
+        errorMessage = message
+        totalPages = 1
     }
 }

@@ -6,20 +6,23 @@ struct GenreBarView: View {
 
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 8) {
+            HStack(spacing: 9) {
                 ForEach(MagazineGenre.all) { genre in
                     GenreChip(
                         genre: genre,
-                        isSelected: genre.id == selectedGenre.id
+                        isSelected: genre == selectedGenre
                     ) {
                         onSelect(genre)
                     }
                 }
             }
-            .padding(.horizontal, 14)
-            .padding(.vertical, 8)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 10)
         }
-        .background(Kiosk.woodDark.opacity(0.95))
+        .background(Kiosk.ink.opacity(0.94))
+        .overlay(alignment: .bottom) {
+            Kiosk.shelfRail(height: 5)
+        }
     }
 }
 
@@ -30,21 +33,24 @@ private struct GenreChip: View {
 
     var body: some View {
         Button(action: action) {
-            HStack(spacing: 5) {
+            HStack(spacing: 6) {
                 Image(systemName: genre.icon)
-                    .font(.system(size: 11, weight: .bold))
+                    .font(.system(size: 12, weight: .black))
                 Text(genre.name)
-                    .font(.system(size: 12, weight: .bold, design: .rounded))
+                    .font(.system(size: 12, weight: .heavy, design: .rounded))
             }
-            .foregroundColor(isSelected ? .white : Kiosk.cream.opacity(0.7))
-            .padding(.horizontal, 12)
-            .padding(.vertical, 7)
-            .background(isSelected ? Kiosk.redAwning : Kiosk.woodMid)
-            .clipShape(Capsule())
-            .overlay(
+            .foregroundStyle(isSelected ? Kiosk.ink : Kiosk.paper.opacity(0.74))
+            .padding(.horizontal, 13)
+            .frame(height: 34)
+            .background {
                 Capsule()
-                    .stroke(isSelected ? Kiosk.yellowPrice.opacity(0.5) : Color.clear, lineWidth: 1)
-            )
+                    .fill(isSelected ? Kiosk.gold : .white.opacity(0.08))
+            }
+            .overlay {
+                Capsule()
+                    .stroke(isSelected ? .white.opacity(0.35) : .white.opacity(0.10), lineWidth: 1)
+            }
+            .shadow(color: isSelected ? Kiosk.gold.opacity(0.32) : .clear, radius: 10, y: 4)
         }
         .buttonStyle(.plain)
     }

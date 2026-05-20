@@ -2,89 +2,99 @@ import SwiftUI
 
 struct MagazineCoverView: View {
     let magazine: Magazine
+    var compact = false
 
     var body: some View {
-        VStack(spacing: 6) {
-            // Cover image
-            AsyncImage(url: magazine.coverURL) { phase in
-                switch phase {
-                case .success(let image):
-                    image
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                        .frame(width: coverWidth, height: coverHeight)
-                        .clipped()
-                case .failure:
-                    placeholder
-                default:
-                    placeholder
-                        .overlay(ProgressView().tint(Kiosk.cream))
-                }
-            }
-            .frame(width: coverWidth, height: coverHeight)
-            .background(Kiosk.metalDark)
-            .clipShape(RoundedRectangle(cornerRadius: 4))
-            .overlay(
-                RoundedRectangle(cornerRadius: 4)
-                    .stroke(Color.white.opacity(0.08), lineWidth: 1)
-            )
-            .shadow(color: .black.opacity(0.5), radius: 4, x: 2, y: 3)
-            // "NEW" badge
-            .overlay(alignment: .topLeading) {
-                if magazine.isNewRelease {
-                    Text("NEW")
-                        .font(.system(size: 9, weight: .black))
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 5)
-                        .padding(.vertical, 2)
-                        .background(Kiosk.redAwning)
-                        .clipShape(RoundedRectangle(cornerRadius: 3))
-                        .offset(x: -3, y: -3)
-                }
-            }
-
-            // Title
+        VStack(spacing: 7) {
+            cover
             Text(magazine.title)
-                .font(.system(size: 11, weight: .bold, design: .rounded))
-                .foregroundColor(Kiosk.cream)
+                .font(.system(size: compact ? 10 : 11, weight: .heavy, design: .rounded))
+                .foregroundStyle(Kiosk.paper)
                 .lineLimit(2)
                 .multilineTextAlignment(.center)
                 .frame(width: coverWidth)
-                .frame(minHeight: 30)
+                .frame(minHeight: compact ? 26 : 32, alignment: .top)
 
-            // Date & Price
-            HStack(spacing: 4) {
+            HStack(spacing: 5) {
                 Text(magazine.displayDate)
-                    .font(.system(size: 9, weight: .semibold, design: .monospaced))
-                    .foregroundColor(Kiosk.yellowPrice)
+                    .foregroundStyle(Kiosk.gold)
+                Text(magazine.formattedPrice)
+                    .foregroundStyle(Kiosk.paper.opacity(0.66))
+            }
+            .font(.system(size: 9, weight: .bold, design: .monospaced))
+            .lineLimit(1)
+            .minimumScaleFactor(0.75)
+            .frame(width: coverWidth)
+        }
+        .padding(.vertical, 7)
+    }
 
-                if magazine.itemPrice > 0 {
-                    Text(magazine.formattedPrice)
-                        .font(.system(size: 9, weight: .bold, design: .monospaced))
-                        .foregroundColor(Kiosk.cream.opacity(0.7))
-                }
+    private var cover: some View {
+        AsyncImage(url: magazine.coverURL) { phase in
+            switch phase {
+            case .success(let image):
+                image
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+            case .failure:
+                placeholder
+            default:
+                placeholder
+                    .overlay {
+                        ProgressView()
+                            .tint(Kiosk.gold)
+                    }
             }
         }
-        .padding(.vertical, 6)
+        .frame(width: coverWidth, height: coverHeight)
+        .clipped()
+        .clipShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
+        .overlay(alignment: .topLeading) {
+            Text(magazine.releaseStatus)
+                .font(.system(size: 9, weight: .black, design: .rounded))
+                .foregroundStyle(.white)
+                .padding(.horizontal, 6)
+                .padding(.vertical, 3)
+                .background(badgeColor, in: RoundedRectangle(cornerRadius: 4, style: .continuous))
+                .padding(5)
+        }
+        .overlay {
+            RoundedRectangle(cornerRadius: 7, style: .continuous)
+                .stroke(.white.opacity(0.16), lineWidth: 1)
+        }
+        .shadow(color: .black.opacity(0.55), radius: 9, x: 3, y: 8)
     }
-
-    private var coverWidth: CGFloat { 105 }
-    private var coverHeight: CGFloat { 148 }
 
     private var placeholder: some View {
-        Rectangle()
-            .fill(
-                LinearGradient(
-                    colors: [Kiosk.metalDark, Kiosk.metalGray.opacity(0.5)],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-            )
-            .frame(width: coverWidth, height: coverHeight)
-            .overlay(
-                Image(systemName: "magazine")
-                    .font(.system(size: 28))
-                    .foregroundColor(Kiosk.cream.opacity(0.3))
-            )
+        ZStack {
+            LinearGradient(colors: Kiosk.palette(for: magazine.id), startPoint: .topLeading, endPoint: .bottomTrailing)
+            Kiosk.halftone(color: .white.opacity(0.13))
+            VStack(alignment: .leading, spacing: 8) {
+                Text(magazine.publisherName.isEmpty ? "MAG" : magazine.publisherName.uppercased())
+                    .font(.system(size: 9, weight: .black, design: .monospaced))
+                    .foregroundStyle(.white.opacity(0.76))
+                    .lineLimit(1)
+                Spacer()
+                Text(magazine.title)
+                    .font(.system(size: compact ? 16 : 18, weight: .black, design: .rounded))
+                    .foregroundStyle(.white)
+                    .lineLimit(4)
+                    .minimumScaleFactor(0.62)
+                Rectangle()
+                    .fill(.white.opacity(0.82))
+                    .frame(height: 4)
+                Rectangle()
+                    .fill(.white.opacity(0.62))
+                    .frame(width: coverWidth * 0.62, height: 4)
+            }
+            .padding(12)
+        }
     }
+
+    private var badgeColor: Color {
+        magazine.isUpcoming ? Kiosk.signalCyan : Kiosk.neonRed
+    }
+
+    private var coverWidth: CGFloat { compact ? 92 : 108 }
+    private var coverHeight: CGFloat { compact ? 130 : 154 }
 }
