@@ -2,12 +2,15 @@ import SwiftUI
 
 struct MagazineDetailView: View {
     let magazine: Magazine
+    @ObservedObject private var favoritesManager = FavoritesManager.shared
 
     var body: some View {
         ScrollView(showsIndicators: false) {
             VStack(spacing: 18) {
                 hero
                 infoPanel
+
+                bookmarkButton
 
                 if let url = magazine.purchaseURL {
                     Link(destination: url) {
@@ -30,6 +33,29 @@ struct MagazineDetailView: View {
         .toolbarBackground(Kiosk.ink, for: .navigationBar)
         .toolbarBackground(.visible, for: .navigationBar)
         .toolbarColorScheme(.dark, for: .navigationBar)
+    }
+
+    private var bookmarkButton: some View {
+        Button {
+            withAnimation(.snappy) {
+                favoritesManager.toggle(magazine)
+            }
+        } label: {
+            let isFav = favoritesManager.isFavorite(magazine)
+            Label(isFav ? "マイ棚から外す" : "マイ棚に追加", systemImage: isFav ? "bookmark.fill" : "bookmark")
+                .font(.system(size: 16, weight: .black, design: .rounded))
+                .foregroundStyle(isFav ? Kiosk.ink : Kiosk.gold)
+                .frame(maxWidth: .infinity)
+                .frame(height: 54)
+                .background(
+                    isFav ? Kiosk.gold : Color.clear,
+                    in: RoundedRectangle(cornerRadius: 8, style: .continuous)
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                        .stroke(Kiosk.gold, lineWidth: isFav ? 0 : 2)
+                )
+        }
     }
 
     private var hero: some View {
