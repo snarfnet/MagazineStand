@@ -1,4 +1,5 @@
 import SwiftUI
+import AppTrackingTransparency
 
 @main
 struct MagazineStandApp: App {
@@ -6,6 +7,11 @@ struct MagazineStandApp: App {
         WindowGroup {
             RootTabView()
                 .preferredColorScheme(.dark)
+                .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                        ATTrackingManager.requestTrackingAuthorization { _ in }
+                    }
+                }
         }
     }
 }
@@ -21,11 +27,23 @@ struct RootTabView: View {
                 }
                 .tag(0)
 
+            CalendarView()
+                .tabItem {
+                    Label("カレンダー", systemImage: "calendar")
+                }
+                .tag(1)
+
+            StatsView()
+                .tabItem {
+                    Label("統計", systemImage: "chart.bar.fill")
+                }
+                .tag(2)
+
             MyShelfView()
                 .tabItem {
                     Label("マイ棚", systemImage: "bookmark.fill")
                 }
-                .tag(1)
+                .tag(3)
         }
         .tint(Kiosk.gold)
     }
