@@ -38,7 +38,7 @@ struct BarcodeScannerView: View {
         .onDisappear {
             scanner.stop()
         }
-        .onChange(of: scanner.scannedCode) { _, code in
+        .onChange(of: scanner.scannedCode) { code in
             guard let code, !isSearching else { return }
             scanner.stop()
             searchMagazine(jan: code)
