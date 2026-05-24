@@ -82,6 +82,21 @@ api("patch", f"appStoreVersions/{asv_id}/relationships/build", {
 })
 print("Build assigned to version")
 
+# Update review notes with ATT and scanner info
+r = api("get", f"appStoreVersions/{asv_id}/appStoreVersionLocalizations")
+for loc in r.json().get("data", []):
+    loc_id = loc["id"]
+    locale = loc["attributes"]["locale"]
+    if locale.startswith("ja"):
+        notes = "ATT（App Tracking Transparency）ダイアログはアプリ起動時に表示されます。\\n\\nバーコードスキャン機能は下部タブバーの「スキャン」タブにあります。カメラで雑誌のJANバーコードを読み取り、マイ棚に追加できます。\\n\\n発売日通知は雑誌詳細画面の「発売日に通知する」ボタンから設定できます。"
+    else:
+        notes = "The ATT (App Tracking Transparency) dialog appears on app launch.\\n\\nBarcode scanner is in the 'Scan' tab at the bottom. Users can scan magazine JAN barcodes to add them to My Shelf.\\n\\nRelease date reminders can be set from the magazine detail screen."
+    api("patch", f"appStoreVersionLocalizations/{loc_id}", {
+        "data": {"type": "appStoreVersionLocalizations", "id": loc_id,
+                 "attributes": {"reviewNotes": notes}}
+    })
+    print(f"Review notes updated for {locale}")
+
 # Submit for review
 r = api("get", f"reviewSubmissions?filter[app]={APP_ID}&filter[state]=UNRESOLVED_ISSUES,WAITING_FOR_REVIEW,IN_REVIEW")
 subs = r.json().get("data", [])

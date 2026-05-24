@@ -27,23 +27,31 @@ struct RootTabView: View {
                 }
                 .tag(0)
 
+            NavigationStack {
+                BarcodeScannerView()
+            }
+                .tabItem {
+                    Label("スキャン", systemImage: "barcode.viewfinder")
+                }
+                .tag(1)
+
             CalendarView()
                 .tabItem {
                     Label("カレンダー", systemImage: "calendar")
                 }
-                .tag(1)
+                .tag(2)
 
             StatsView()
                 .tabItem {
                     Label("統計", systemImage: "chart.bar.fill")
                 }
-                .tag(2)
+                .tag(3)
 
             MyShelfView()
                 .tabItem {
                     Label("マイ棚", systemImage: "bookmark.fill")
                 }
-                .tag(3)
+                .tag(4)
         }
         .tint(Kiosk.gold)
     }

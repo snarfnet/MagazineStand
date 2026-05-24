@@ -3,6 +3,8 @@ import SwiftUI
 struct MagazineDetailView: View {
     let magazine: Magazine
     @ObservedObject private var favoritesManager = FavoritesManager.shared
+    @ObservedObject private var notificationManager = NotificationManager.shared
+    @State private var reminderSet = false
 
     var body: some View {
         ScrollView(showsIndicators: false) {
@@ -11,6 +13,7 @@ struct MagazineDetailView: View {
                 infoPanel
 
                 bookmarkButton
+                reminderButton
 
                 if let url = magazine.purchaseURL {
                     Link(destination: url) {
@@ -55,6 +58,41 @@ struct MagazineDetailView: View {
                     RoundedRectangle(cornerRadius: 8, style: .continuous)
                         .stroke(Kiosk.gold, lineWidth: isFav ? 0 : 2)
                 )
+        }
+    }
+
+    @ViewBuilder
+    private var reminderButton: some View {
+        if magazine.isUpcoming, let date = magazine.parsedSalesDate {
+            Button {
+                if !notificationManager.isAuthorized {
+                    Task {
+                        await notificationManager.requestPermission()
+                        if notificationManager.isAuthorized {
+                            notificationManager.scheduleReleaseReminder(for: magazine)
+                            reminderSet = true
+                        }
+                    }
+                } else {
+                    notificationManager.scheduleReleaseReminder(for: magazine)
+                    withAnimation(.snappy) { reminderSet = true }
+                }
+            } label: {
+                Label(reminderSet ? "通知設定済み" : "発売日に通知する", systemImage: reminderSet ? "bell.fill" : "bell.badge")
+                    .font(.system(size: 16, weight: .black, design: .rounded))
+                    .foregroundStyle(reminderSet ? Kiosk.ink : Kiosk.signalCyan)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 54)
+                    .background(
+                        reminderSet ? Kiosk.signalCyan : Color.clear,
+                        in: RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8, style: .continuous)
+                            .stroke(Kiosk.signalCyan, lineWidth: reminderSet ? 0 : 2)
+                    )
+            }
+            .disabled(reminderSet)
         }
     }
 
